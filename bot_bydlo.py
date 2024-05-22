@@ -2,7 +2,7 @@ import asyncio
 from g4f.client import AsyncClient
 from g4f.Provider import Aichatos
 from aiogram import Router, Bot, Dispatcher, F, types
-from config import BOT_TOKEN, GPT_MODEL, TIMER_INTERVAL, SYSTEM_MESSAGE, YOUR_CHAT_ID
+from config import BOT_TOKEN, DONT_UNDERSTAND_MESSAGE, GPT_MODEL, TIMER_INTERVAL, SYSTEM_MESSAGE, YOUR_USERNAME
 
 router = Router(name=__name__)
 lock = asyncio.Lock()
@@ -19,15 +19,17 @@ async def response_gpt(message):
         return completion.choices[0].message.content
 
     except Exception as ex:
-        print(f"Error during GPT response generation: {ex")
+        print(f"Error during GPT response generation: {ex}")
         return None
 
+@router.business_message(F.text)
 @router.message(F.text)
 async def handler_message(message: types.Message):
     async with lock:
+        await (100)
         user_id = message.chat.id
         print(f"Received message from {user_id}: {message.text}")
-        if user_id == YOUR_CHAT_ID:
+        if message.from_user.username == YOUR_USERNAME:
             return None
        
         
@@ -39,7 +41,7 @@ async def handler_message(message: types.Message):
         response = await response_gpt(messages)
 
         if response is None:
-            await message.answer("Я не понимаю вас. Попробуй еще раз.")
+            await message.answer(DONT_UNDERSTAND_MESSAGE)
         else:
             print(f"Response sent to chat: {response}")
             await message.answer(response)
